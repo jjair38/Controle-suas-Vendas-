@@ -1,0 +1,115 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "Sales record from marketplace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "marketplace": { "type": "string", "enum": ["Shopee", "Mercado Livre"] },
+        "date": { "type": "string", "format": "date-time" },
+        "orderId": { "type": "string" },
+        "sku": { "type": "string" },
+        "product": { "type": "string" },
+        "quantity": { "type": "number" },
+        "material": { "type": "string" },
+        "energy": { "type": "number" },
+        "filament": { "type": "number" },
+        "maintenance": { "type": "number" },
+        "packaging": { "type": "number" },
+        "otherCosts": { "type": "number" },
+        "totalCost": { "type": "number" },
+        "saleValue": { "type": "number" },
+        "marketplaceTax": { "type": "number" },
+        "otherTaxes": { "type": "number" },
+        "subFrete": { "type": "number" },
+        "netValue": { "type": "number" },
+        "profit": { "type": "number" },
+        "margin": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      },
+      "required": ["marketplace", "date", "orderId", "product", "quantity", "saleValue", "userId"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Standard product configuration",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "sku": { "type": "string" },
+        "material": { "type": "string" },
+        "filamentWeight": { "type": "number" },
+        "filamentCostPerGram": { "type": "number" },
+        "printTime": { "type": "number" },
+        "energyConsumption": { "type": "number" },
+        "energyCost": { "type": "number" },
+        "maintenanceCostPerHour": { "type": "number" },
+        "packagingCost": { "type": "number" },
+        "otherCosts": { "type": "number" },
+        "totalEstimatedCost": { "type": "number" },
+        "sellingPrice": { "type": "number" },
+        "userId": { "type": "string" }
+      },
+      "required": ["name", "sku", "userId"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global cost settings",
+      "type": "object",
+      "properties": {
+        "energy": {
+          "type": "object",
+          "properties": {
+            "kWhPrice": { "type": "number" },
+            "printerConsumption": { "type": "number" }
+          }
+        },
+        "maintenance": {
+          "type": "object",
+          "properties": {
+            "totalCost": { "type": "number" },
+            "hours": { "type": "number" },
+            "costPerHour": { "type": "number" }
+          }
+        },
+        "userId": { "type": "string" }
+      },
+      "required": ["userId"]
+    },
+    "Material": {
+      "title": "Material",
+      "description": "Filament material settings",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "rollPrice": { "type": "number" },
+        "rollWeight": { "type": "number" },
+        "costPerGram": { "type": "number" },
+        "userId": { "type": "string" }
+      },
+      "required": ["name", "rollPrice", "rollWeight", "userId"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Collection of all orders"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of all products"
+    },
+    "/settings/{settingId}": {
+      "schema": "Settings",
+      "description": "Global user settings"
+    },
+    "/materials/{materialId}": {
+      "schema": "Material",
+      "description": "Materials list"
+    }
+  }
+}

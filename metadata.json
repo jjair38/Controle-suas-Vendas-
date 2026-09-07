@@ -1,0 +1,8 @@
+{
+  "name": "CRM de Pedidos e Controle Financeiro",
+  "description": "CRM para controle de vendas em marketplaces (Shopee e Mercado Livre) com foco em lucratividade e gestão de custos de produção.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
