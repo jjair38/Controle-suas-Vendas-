@@ -14,7 +14,7 @@ import {
   doc,
   serverTimestamp
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, handleFirestoreError, OperationType } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth-context';
 import { Order } from '@/lib/types';
 import { startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
@@ -129,7 +129,7 @@ export function useOrders(period: string = 'last30') {
       setOrders(filtered);
       setLoading(false);
     }, (error) => {
-      console.error("Error fetching orders:", error);
+      handleFirestoreError(error, OperationType.LIST, 'orders');
       setLoading(false);
     });
 
@@ -138,12 +138,16 @@ export function useOrders(period: string = 'last30') {
 
   const addOrder = async (order: Omit<Order, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
     if (!user) return;
-    return addDoc(collection(db, 'orders'), {
-      ...order,
-      userId: user.uid,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
+    try {
+      return await addDoc(collection(db, 'orders'), {
+        ...order,
+        userId: user.uid,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'orders');
+    }
   };
 
   return { orders, loading, addOrder };

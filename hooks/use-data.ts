@@ -13,7 +13,7 @@ import {
   setDoc,
   getDoc
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, handleFirestoreError, OperationType } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth-context';
 import { Product, Settings, Material } from '@/lib/types';
 
@@ -28,13 +28,20 @@ export function useProducts() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
       setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'products');
+      setLoading(false);
     });
     return () => unsubscribe();
   }, [user]);
 
   const addProduct = async (product: Omit<Product, 'id' | 'userId'>) => {
     if (!user) return;
-    return addDoc(collection(db, 'products'), { ...product, userId: user.uid });
+    try {
+      return await addDoc(collection(db, 'products'), { ...product, userId: user.uid });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'products');
+    }
   };
 
   return { products, loading, addProduct };
@@ -61,6 +68,9 @@ export function useSettings() {
         setSettings(initial);
       }
       setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`);
+      setLoading(false);
     });
     return () => unsubscribe();
   }, [user]);
@@ -68,7 +78,11 @@ export function useSettings() {
   const updateSettings = async (newSettings: Partial<Settings>) => {
     if (!user) return;
     const docRef = doc(db, 'settings', user.uid);
-    return setDoc(docRef, { ...settings, ...newSettings, userId: user.uid }, { merge: true });
+    try {
+      return await setDoc(docRef, { ...settings, ...newSettings, userId: user.uid }, { merge: true });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `settings/${user.uid}`);
+    }
   };
 
   return { settings, loading, updateSettings };
@@ -85,13 +99,20 @@ export function useMaterials() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setMaterials(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Material[]);
       setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'materials');
+      setLoading(false);
     });
     return () => unsubscribe();
   }, [user]);
 
   const addMaterial = async (material: Omit<Material, 'id' | 'userId'>) => {
     if (!user) return;
-    return addDoc(collection(db, 'materials'), { ...material, userId: user.uid });
+    try {
+      return await addDoc(collection(db, 'materials'), { ...material, userId: user.uid });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'materials');
+    }
   };
 
   return { materials, loading, addMaterial };

@@ -6,9 +6,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Helper functions
+    // --- Helper Functions ---
     function isSignedIn() {
       return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
     }
 
     function isOwner(userId) {
@@ -27,7 +31,8 @@ service cloud.firestore {
       return resource.data;
     }
 
-    // --- Order Validation ---
+    // --- Validation Helpers ---
+    
     function isValidOrder(data) {
       return data.userId == request.auth.uid &&
              data.marketplace in ['Shopee', 'Mercado Livre'] &&
@@ -35,46 +40,70 @@ service cloud.firestore {
              data.product is string && data.product.size() <= 200 &&
              data.quantity is number && data.quantity > 0 &&
              data.saleValue is number &&
-             data.date is string;
+             data.date is string && data.date.size() <= 64 &&
+             data.createdAt is string && data.createdAt.size() <= 64 &&
+             data.updatedAt is string && data.updatedAt.size() <= 64;
     }
 
-    match /orders/{orderId} {
-      allow read: if isSignedIn() && existing().userId == request.auth.uid;
-      allow create: if isSignedIn() && isValidOrder(incoming()) && incoming().createdAt == request.time;
-      allow update: if isSignedIn() && existing().userId == request.auth.uid && 
-                       isValidOrder(incoming()) && incoming().updatedAt == request.time &&
-                       incoming().userId == existing().userId;
-      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
-    }
-
-    // --- Product Validation ---
     function isValidProduct(data) {
       return data.userId == request.auth.uid &&
              data.name is string && data.name.size() <= 200 &&
-             data.sku is string && data.sku.size() <= 100;
+             data.sku is string && data.sku.size() <= 100 &&
+             (data.material == null || (data.material is string && data.material.size() <= 100));
+    }
+
+    function isValidMaterial(data) {
+      return data.userId == request.auth.uid &&
+             data.name is string && data.name.size() <= 100 &&
+             data.rollPrice is number &&
+             data.rollWeight is number;
+    }
+
+    function isValidSettings(data) {
+      return data.userId == request.auth.uid &&
+             data.energy is map &&
+             data.maintenance is map;
+    }
+
+    // --- Collection Rules ---
+
+    match /orders/{orderId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isEmailVerified() && isValidId(orderId) && isValidOrder(incoming());
+      allow update: if isEmailVerified() && isValidId(orderId) && 
+                       existing().userId == request.auth.uid && 
+                       isValidOrder(incoming()) && 
+                       incoming().userId == existing().userId;
+      allow delete: if isEmailVerified() && isValidId(orderId) && existing().userId == request.auth.uid;
     }
 
     match /products/{productId} {
-      allow read: if isSignedIn() && existing().userId == request.auth.uid;
-      allow create: if isSignedIn() && isValidProduct(incoming());
-      allow update: if isSignedIn() && existing().userId == request.auth.uid && 
-                       isValidProduct(incoming()) && incoming().userId == existing().userId;
-      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isEmailVerified() && isValidId(productId) && isValidProduct(incoming());
+      allow update: if isEmailVerified() && isValidId(productId) && 
+                       existing().userId == request.auth.uid && 
+                       isValidProduct(incoming()) && 
+                       incoming().userId == existing().userId;
+      allow delete: if isEmailVerified() && isValidId(productId) && existing().userId == request.auth.uid;
     }
 
-    // --- Settings Validation ---
-    match /settings/{settingId} {
-      allow read: if isSignedIn() && existing().userId == request.auth.uid;
-      allow write: if isSignedIn() && incoming().userId == request.auth.uid;
-    }
-
-    // --- Materials Validation ---
     match /materials/{materialId} {
-      allow read: if isSignedIn() && existing().userId == request.auth.uid;
-      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
-      allow update: if isSignedIn() && existing().userId == request.auth.uid && 
-                       incoming().userId == request.auth.uid;
-      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isEmailVerified() && isValidId(materialId) && isValidMaterial(incoming());
+      allow update: if isEmailVerified() && isValidId(materialId) && 
+                       existing().userId == request.auth.uid && 
+                       isValidMaterial(incoming()) && 
+                       incoming().userId == existing().userId;
+      allow delete: if isEmailVerified() && isValidId(materialId) && existing().userId == request.auth.uid;
+    }
+
+    match /settings/{settingId} {
+      // For settings, we allow read if ID matches to handle initial state in hook
+      allow read: if isSignedIn() && settingId == request.auth.uid;
+      allow write: if isEmailVerified() && settingId == request.auth.uid && isValidSettings(incoming());
     }
   }
 }
