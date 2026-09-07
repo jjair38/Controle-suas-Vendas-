@@ -3,16 +3,22 @@
 import React from 'react';
 import { Sidebar } from './sidebar';
 import { useAuth } from '@/lib/auth-context';
-import { motion } from 'motion/react';
+import { useSidebar } from '@/lib/sidebar-context';
+import { motion, AnimatePresence } from 'motion/react';
 import { User } from 'lucide-react';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, login } = useAuth();
+  const { isOpen } = useSidebar();
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex h-screen w-full items-center justify-center bg-white">
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full"
+        />
       </div>
     );
   }
@@ -24,15 +30,15 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-100/50 blur-[120px] rounded-full" />
         
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           className="max-w-md w-full bg-white rounded-[32px] shadow-[0_20px_50px_-20px_rgba(0,0,0,0.1)] border border-slate-100 p-10 text-center space-y-8 z-10"
         >
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-[24px] flex items-center justify-center text-white mx-auto shadow-xl shadow-blue-200">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[24px] flex items-center justify-center text-white mx-auto shadow-2xl shadow-blue-200">
             <User size={40} strokeWidth={1.5} />
           </div>
           <div className="space-y-3">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Painel de Controle</h1>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">Painel de Controle</h1>
             <p className="text-slate-500 font-medium leading-relaxed px-4">Gerencie sua produção, vendas e lucratividade com precisão matemática.</p>
           </div>
           <button
@@ -45,26 +51,36 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             </div>
           </button>
           
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Acesso Restrito</p>
+          <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Acesso Restrito</p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50/30">
+    <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <main className="flex-1 lg:ml-[88px] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] min-h-screen p-4 lg:p-10">
+      <motion.main 
+        animate={{ 
+          marginLeft: isOpen ? 280 : 88,
+          transition: { type: 'spring', damping: 25, stiffness: 200 }
+        }}
+        className="flex-1 min-h-screen p-4 lg:p-10 max-lg:!ml-0"
+      >
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            {children}
-          </motion.div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key="content-wrapper"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </div>
-      </main>
+      </motion.main>
     </div>
   );
 }

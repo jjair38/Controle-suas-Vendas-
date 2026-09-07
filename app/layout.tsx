@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
+import { SidebarProvider } from '@/lib/sidebar-context';
 
 export const metadata: Metadata = {
   title: 'CRM de Pedidos e Controle Financeiro',
@@ -17,7 +18,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR">
       <body suppressHydrationWarning className="bg-slate-50 text-slate-900">
         <AuthProvider>
-          {children}
+          <SidebarProvider>
+            {children}
+          </SidebarProvider>
         </AuthProvider>
       </body>
     </html>
