@@ -17,6 +17,7 @@ import {
   X
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { cn } from '@/lib/utils';
 import { Marketplace, Order, Product } from '@/lib/types';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';

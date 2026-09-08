@@ -13,6 +13,7 @@ import {
   Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '@/lib/utils';
 import { Marketplace, Order } from '@/lib/types';
 import { useOrders } from '@/hooks/use-orders';
 import { db } from '@/lib/firebase';

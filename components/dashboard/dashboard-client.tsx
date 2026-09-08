@@ -251,7 +251,7 @@ export function DashboardClient() {
                   }}
                   itemStyle={{ fontWeight: 700, fontSize: '13px' }}
                   labelStyle={{ fontWeight: 800, color: '#1e293b', marginBottom: '8px', fontSize: '14px' }}
-                  formatter={(v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)}
+                  formatter={(v: any) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))}
                 />
                 <Line 
                   type="monotone" 
